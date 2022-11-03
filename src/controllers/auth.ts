@@ -9,11 +9,6 @@ export const login = (req: Request, res: Response) => {
 };
 
 export const register = async (req: Request, res: Response) => {
-  // TODO
-  // Validate and sanitized the form inputs
-  // Check if there is already the same email or handlename
-  // Validate image input
-
   const {
     firstName,
     lastName,
@@ -21,6 +16,28 @@ export const register = async (req: Request, res: Response) => {
     email,
     password: plainTextPassword,
   } = req.body;
+
+  // Email and Handlenamme could also validate via express-validator
+
+  const userEmail = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (userEmail) {
+    return res.status(400).json({ message: 'Email Already In Use.' });
+  }
+
+  const userHandlename = await prisma.user.findUnique({
+    where: {
+      handleName,
+    },
+  });
+
+  if (userHandlename) {
+    return res.status(400).json({ message: 'Handle Name Already In Use.' });
+  }
 
   const salt = await bcrypt.genSalt(SALT_ROUNDS);
   const password = await bcrypt.hash(plainTextPassword, salt);
