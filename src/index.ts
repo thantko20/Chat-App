@@ -1,11 +1,14 @@
 import express, { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 const app = express();
 
 const PORT = process.env.PORT || 5000;
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World');
+app.get('/', async (req: Request, res: Response) => {
+  res.send('Hello world');
 });
 
 app.listen(PORT, () => {

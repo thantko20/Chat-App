@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  firstName String
+  lastName String
+  handleName String
+  email String @unique
+  password String
+  salt String
+  emailVerified Boolean
+  profile_image String?
+  friendshipFriendOf Friendship[] @relation("FriendOf")
+  friendshipFriendTo Friendship[] @relation("FriendTo")
+  messages Message[] 
+  createdAt DateTime @default(now())
+}
+
+model Friendship {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  status FriendShipStatus @default(REQUEST_PENDING)
+  friendOfId String @db.ObjectId
+  friendToId String? @db.ObjectId
+  friendOf User @relation(name: "FriendOf", fields: [friendOfId], references: [id])
+  friendTo User? @relation(name: "FriendTo", fields: [friendToId], references: [id])
+  conversationId String @db.ObjectId
+  conversation PrivateConversation @relation(fields: [conversationId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model PrivateConversation {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  updatedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  friendships Friendship[]
+  messages Message[]
+}
+
+model Message {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  senderId String @db.ObjectId
+  sender User @relation(fields: [senderId], references: [id])
+  conversationId String @db.ObjectId
+  conversation PrivateConversation @relation(fields: [conversationId], references: [id])
+  text String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+enum FriendShipStatus {
+  REQUEST_PENDING
+  FRIENDS
+  HAS_BLOCKED
+  IS_BLOCKED
+}
+
