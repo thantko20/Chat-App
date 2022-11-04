@@ -1,11 +1,31 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
 import { prisma } from '../services/db';
+import { comparePassword, genHashAndSalt } from '../services/bcrypt';
 
-const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS as string);
+export const login = async (req: Request, res: Response) => {
+  const { email, password: plainTextPassword } = req.body;
 
-export const login = (req: Request, res: Response) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (!user) {
+    return res.status(401).json({ message: 'Invalid Email.' });
+  }
+
+  const isPasswordValid = await comparePassword(
+    plainTextPassword,
+    user.password,
+  );
+
+  if (!isPasswordValid) {
+    return res.status(401).json({ message: 'Invalid Password.' });
+  }
+
   // TODO
+  // JWT
 };
 
 export const register = async (req: Request, res: Response) => {
@@ -17,7 +37,7 @@ export const register = async (req: Request, res: Response) => {
     password: plainTextPassword,
   } = req.body;
 
-  // Email and Handlenamme could also validate via express-validator
+  // Email and Handlenamme could be also validated via express-validator
 
   const userEmail = await prisma.user.findUnique({
     where: {
@@ -39,8 +59,7 @@ export const register = async (req: Request, res: Response) => {
     return res.status(400).json({ message: 'Handle Name Already In Use.' });
   }
 
-  const salt = await bcrypt.genSalt(SALT_ROUNDS);
-  const password = await bcrypt.hash(plainTextPassword, salt);
+  const { password, salt } = await genHashAndSalt(plainTextPassword);
 
   const newUser = await prisma.user.create({
     data: {

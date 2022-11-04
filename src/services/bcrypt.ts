@@ -13,3 +13,12 @@ export const genHashAndSalt = async (
     salt,
   };
 };
+
+export const comparePassword = async (
+  plainPassword: string,
+  hashPassword: string,
+) => {
+  const isEqual = await bcrypt.compare(plainPassword, hashPassword);
+
+  return isEqual;
+};
