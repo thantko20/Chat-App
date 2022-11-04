@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon ./src/index.ts",
     "build": "tsc",
-    "preview": "nodemon ./build/index.js"
+    "preview": "nodemon ./build/index.js",
+    "start": "npm run build && node ./build/index.js"
   },
   "author": "Thant Ko Zaw",
   "license": "ISC",
