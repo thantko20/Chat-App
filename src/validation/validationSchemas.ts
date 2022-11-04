@@ -12,3 +12,8 @@ export const registerUserSchema = [
   body('handleName').notEmpty().trim().escape(),
   body('password').notEmpty(),
 ];
+
+export const loginUserSchema = [
+  body('email').notEmpty().isEmail().escape(),
+  body('password').notEmpty(),
+];

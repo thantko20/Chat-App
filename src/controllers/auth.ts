@@ -1,8 +1,13 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { prisma } from '../services/db';
 import { comparePassword, genHashAndSalt } from '../services/bcrypt';
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { email, password: plainTextPassword } = req.body;
 
   const user = await prisma.user.findUnique({
@@ -24,8 +29,27 @@ export const login = async (req: Request, res: Response) => {
     return res.status(401).json({ message: 'Invalid Password.' });
   }
 
-  // TODO
-  // JWT
+  jwt.sign(
+    { userId: user.id },
+    process.env.TOKEN_SECRET as string,
+    { expiresIn: '14d' },
+    (err, token) => {
+      if (err) return next(err);
+
+      res.json({
+        token,
+        user: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          handleName: user.handleName,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          profileImage: user.profileImage,
+          id: user.id,
+        },
+      });
+    },
+  );
 };
 
 export const register = async (req: Request, res: Response) => {
@@ -78,7 +102,7 @@ export const register = async (req: Request, res: Response) => {
       email: true,
       emailVerified: true,
       id: true,
-      profile_image: true,
+      profileImage: true,
     },
   });
 

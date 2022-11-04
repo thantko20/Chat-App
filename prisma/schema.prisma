@@ -19,7 +19,7 @@ model User {
   password String
   salt String
   emailVerified Boolean
-  profile_image String?
+  profileImage String?
   friendshipFriendOf Friendship[] @relation("FriendOf")
   friendshipFriendTo Friendship[] @relation("FriendTo")
   messages Message[] 
