@@ -4,6 +4,7 @@ import * as dotenv from 'dotenv';
 import cors from 'cors';
 
 import authRouter from './routes/auth';
+import friendsRouter from './routes/friends';
 
 dotenv.config();
 const app = express();
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/auth', authRouter);
+app.use('/friends', friendsRouter);
 
 app.get('/', async (req: Request, res: Response) => {
   res.send('Hello world');

@@ -39,3 +39,5 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     },
   );
 };
+
+export default verifyToken;
