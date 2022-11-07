@@ -32,11 +32,13 @@ model Friendship {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   status FriendShipStatus @default(REQUEST_PENDING)
   friendOfId String @db.ObjectId
-  friendToId String? @db.ObjectId
+  friendToId String @db.ObjectId
   friendOf User @relation(name: "FriendOf", fields: [friendOfId], references: [id])
-  friendTo User? @relation(name: "FriendTo", fields: [friendToId], references: [id])
+  friendTo User @relation(name: "FriendTo", fields: [friendToId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+
+  @@unique([friendOfId, friendToId])
 }
 
 model PrivateConversation {
