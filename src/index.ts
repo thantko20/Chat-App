@@ -3,11 +3,13 @@ import * as dotenv from 'dotenv';
 import cors from 'cors';
 import { Server } from 'socket.io';
 import http from 'http';
+import jwt from 'jsonwebtoken';
 
 import authRouter from './routes/auth';
 import friendsRouter from './routes/friends';
 import { Socket } from 'socket.io';
 import { prisma } from './services/db';
+import { TDecodedToken } from './middleware/verifyToken';
 
 dotenv.config();
 const app = express();
@@ -17,6 +19,7 @@ const io = new Server(server, {
     origin: 'http://localhost:5173',
   },
 });
+app.set('socketIO', io);
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
@@ -29,22 +32,24 @@ app.get('/', async (req: Request, res: Response) => {
   res.send('Hello world');
 });
 
-io.use(async (socket, next) => {
-  const userId: string = socket.handshake.auth.userId;
-
-  const user = await prisma.user.findFirst({
-    where: {
-      id: userId,
-    },
-  });
-
-  if (user) {
-    socket.userId = user.id;
-    return next();
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token || socket.handshake.headers.token;
+  if (!token) {
+    return next(new Error('Invalid Token.'));
   }
 
-  console.log('User not found.');
-  next(new Error('User not found.'));
+  jwt.verify(
+    token as string,
+    process.env.TOKEN_SECRET as string,
+    (err, decoded) => {
+      if (err) return next(err);
+      const { userId } = decoded as TDecodedToken;
+
+      socket.userId = userId;
+
+      next();
+    },
+  );
 });
 
 io.on('connection', (socket: Socket) => {

@@ -2,11 +2,11 @@ import { NextFunction, Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { prisma } from '../services/db';
 
-interface ICustomPayload extends JwtPayload {
+export interface ICustomPayload extends JwtPayload {
   userId: string;
 }
 
-type TDecodedToken = ICustomPayload & string;
+export type TDecodedToken = ICustomPayload & string;
 
 const verifyToken = (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
