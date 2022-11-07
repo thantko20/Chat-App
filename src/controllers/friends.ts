@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { prisma } from '../services/db';
 
 export const getFriends = async (req: Request, res: Response) => {
@@ -10,7 +10,6 @@ export const getFriends = async (req: Request, res: Response) => {
     select: {
       id: true,
       status: true,
-      conversationId: true,
       friendTo: {
         select: {
           id: true,
@@ -25,4 +24,28 @@ export const getFriends = async (req: Request, res: Response) => {
   });
 
   res.json({ data: friends });
+};
+
+export const addFriend = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const friendId = req.params.id;
+
+    const friendship = await prisma.friendship.create({
+      data: {
+        friendOfId: req.userId as string,
+        friendToId: friendId,
+        status: 'REQUEST_PENDING',
+      },
+    });
+
+    res.json({ data: friendship });
+  } catch (err) {
+    if (err instanceof Error) {
+      next(err);
+    }
+  }
 };

@@ -50,7 +50,11 @@ io.use(async (socket, next) => {
 io.on('connection', (socket: Socket) => {
   console.log('A user connected.');
 
-  socket.emit('test', { userId: socket.userId });
+  const userId = socket.userId as string;
+
+  socket.emit('test', { userId });
+
+  socket.join(userId);
 
   socket.on('disconnect', () => {
     console.log('User disconnected');
