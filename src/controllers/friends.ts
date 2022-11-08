@@ -52,6 +52,19 @@ export const addFriend = async (
   try {
     const friendId = req.params.id;
 
+    const alreadyExists = await prisma.friendship.findFirst({
+      where: {
+        friendOfId: req.userId,
+        friendToId: friendId,
+      },
+    });
+
+    if (alreadyExists) {
+      return res.status(400).json({
+        message: 'Already friends.',
+      });
+    }
+
     const friendship = await prisma.friendship.create({
       data: {
         friendOfId: req.userId as string,
@@ -88,6 +101,17 @@ export const acceptFriend = async (
     });
 
     const senderId = senderFriendship.friendOfId;
+
+    const alreadyExists = await prisma.friendship.findFirst({
+      where: {
+        friendOfId: req.userId,
+        friendToId: senderId,
+      },
+    });
+
+    if (alreadyExists) {
+      return res.status(400).json({ message: 'Already friends.' });
+    }
 
     // Create a new document for the current user (receiver)
     const userFriendship = await prisma.friendship.create({
