@@ -3,11 +3,13 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = "referentialIntegrity"
 }
 
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model User {
@@ -22,8 +24,8 @@ model User {
   profileImage String?
   friendshipFriendOf Friendship[] @relation("FriendOf")
   friendshipFriendTo Friendship[] @relation("FriendTo")
-  userOneConversation PrivateConversation[] @relation("UserOne")
-  userTwoConversation PrivateConversation[] @relation("UserTwo")
+  userOneConversation Conversation[] @relation("UserOne")
+  userTwoConversation Conversation[] @relation("UserTwo")
   messages Message[] 
   createdAt DateTime @default(now())
 }
@@ -37,19 +39,19 @@ model Friendship {
   friendTo User @relation(name: "FriendTo", fields: [friendToId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-
-  @@unique([friendOfId, friendToId])
 }
 
-model PrivateConversation {
+model Conversation {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   userOneId String @db.ObjectId
   userTwoId String @db.ObjectId
-  userOne User @relation(name: "UserOne",fields: [userOneId], references: [id])
+  lastMessageId String? @db.ObjectId @unique
+  userOne User @relation(name: "UserOne", fields: [userOneId], references: [id])
   userTwo User @relation(name: "UserTwo", fields: [userTwoId], references: [id])
+  lastMessage Message? @relation(name: "LastMessage", fields: [lastMessageId], references: [id])
+  messages Message[] @relation("Messages")
   updatedAt DateTime @default(now())
   createdAt DateTime @default(now())
-  messages Message[]
 }
 
 model Message {
@@ -57,7 +59,8 @@ model Message {
   senderId String @db.ObjectId
   sender User @relation(fields: [senderId], references: [id])
   conversationId String @db.ObjectId
-  conversation PrivateConversation @relation(fields: [conversationId], references: [id])
+  conversation Conversation @relation(name: "Messages", fields: [conversationId], references: [id], onUpdate: NoAction)
+  conversationLastMessage Conversation? @relation("LastMessage")
   text String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
