@@ -39,11 +39,18 @@ export const getConversation = async (
   next: NextFunction,
 ) => {
   try {
-    const conversationId = req.params.id;
+    const friendId = req.params.id;
 
-    const conversation = await prisma.conversation.findUnique({
+    const conversation = await prisma.conversation.findFirst({
       where: {
-        id: conversationId,
+        participantIds: {
+          equals: [req.userId as string, friendId],
+        },
+      },
+      include: {
+        messages: {
+          take: 1,
+        },
       },
     });
 
