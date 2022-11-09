@@ -4,11 +4,11 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 import http from 'http';
 import jwt from 'jsonwebtoken';
+import { Socket } from 'socket.io';
 
 import authRouter from './routes/auth';
 import friendsRouter from './routes/friends';
-import { Socket } from 'socket.io';
-import { prisma } from './services/db';
+import conversationsrouter from './routes/conversations';
 import { TDecodedToken } from './middleware/verifyToken';
 
 dotenv.config();
@@ -27,6 +27,7 @@ app.use(express.json());
 
 app.use('/auth', authRouter);
 app.use('/friends', friendsRouter);
+app.use('/conversations', conversationsrouter);
 
 app.get('/', async (req: Request, res: Response) => {
   res.send('Hello world');
@@ -53,7 +54,7 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket: Socket) => {
-  console.log('A user connected.');
+  console.log('A user connected. UserID: ', socket.userId);
 
   const userId = socket.userId as string;
 

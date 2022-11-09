@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../services/db';
 import { comparePassword, genHashAndSalt } from '../services/bcrypt';
+import { excludeFields } from '../utils';
 
 export const login = async (
   req: Request,
@@ -38,15 +39,7 @@ export const login = async (
 
       res.json({
         token,
-        user: {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          handleName: user.handleName,
-          email: user.email,
-          emailVerified: user.emailVerified,
-          profileImage: user.profileImage,
-          id: user.id,
-        },
+        user: excludeFields(user, 'password', 'salt'),
       });
     },
   );
@@ -95,16 +88,7 @@ export const register = async (req: Request, res: Response) => {
       password,
       salt,
     },
-    select: {
-      firstName: true,
-      lastName: true,
-      handleName: true,
-      email: true,
-      emailVerified: true,
-      id: true,
-      profileImage: true,
-    },
   });
 
-  res.json({ data: newUser });
+  res.json({ data: excludeFields(newUser, 'password', 'salt') });
 };

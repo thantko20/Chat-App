@@ -24,9 +24,9 @@ model User {
   profileImage String?
   friendshipFriendOf Friendship[] @relation("FriendOf")
   friendshipFriendTo Friendship[] @relation("FriendTo")
-  userOneConversation Conversation[] @relation("UserOne")
-  userTwoConversation Conversation[] @relation("UserTwo")
-  messages Message[] 
+  messages Message[]
+  conversationIds String[] @db.ObjectId
+  conversations Conversation[] @relation(fields: [conversationIds], references: [id])
   createdAt DateTime @default(now())
 }
 
@@ -43,13 +43,11 @@ model Friendship {
 
 model Conversation {
   id String @id @default(auto()) @map("_id") @db.ObjectId
-  userOneId String @db.ObjectId
-  userTwoId String @db.ObjectId
   lastMessageId String? @db.ObjectId @unique
-  userOne User @relation(name: "UserOne", fields: [userOneId], references: [id])
-  userTwo User @relation(name: "UserTwo", fields: [userTwoId], references: [id])
   lastMessage Message? @relation(name: "LastMessage", fields: [lastMessageId], references: [id])
   messages Message[] @relation("Messages")
+  participantIds String[] @db.ObjectId
+  participants User[] @relation(fields: [participantIds], references: [id])
   updatedAt DateTime @default(now())
   createdAt DateTime @default(now())
 }
