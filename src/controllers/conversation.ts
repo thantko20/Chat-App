@@ -18,6 +18,9 @@ export const getConversations = async (
         participants: true,
         lastMessage: true,
       },
+      orderBy: {
+        updatedAt: 'desc',
+      },
     });
 
     const sanitizedConversations = conversations.map((con) => {
@@ -49,7 +52,9 @@ export const getConversation = async (
       },
       include: {
         messages: {
-          take: 1,
+          orderBy: {
+            createdAt: 'desc',
+          },
         },
       },
     });

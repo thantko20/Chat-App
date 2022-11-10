@@ -2,46 +2,58 @@ import { NextFunction, Request, Response } from 'express';
 import { Server } from 'socket.io';
 import { prisma } from '../services/db';
 
-export const getFriends = async (req: Request, res: Response) => {
-  const friends = await prisma.friendship.findMany({
-    where: {
-      friendOfId: req.userId,
-      OR: [
-        {
-          status: 'FRIENDS',
+export const getFriends = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const friends = await prisma.friendship.findMany({
+      where: {
+        friendOfId: req.userId,
+        OR: [
+          {
+            status: 'FRIENDS',
+          },
+          {
+            status: 'REQUEST_PENDING',
+          },
+        ],
+      },
+      select: {
+        id: true,
+        status: true,
+        friendTo: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            handleName: true,
+            profileImage: true,
+          },
         },
-        {
-          status: 'REQUEST_PENDING',
-        },
-      ],
-    },
-    select: {
-      id: true,
-      status: true,
-      friendTo: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          handleName: true,
-          profileImage: true,
+        friendOf: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            handleName: true,
+            profileImage: true,
+          },
         },
       },
-      friendOf: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          handleName: true,
-          profileImage: true,
+      orderBy: {
+        friendTo: {
+          firstName: 'asc',
         },
       },
-    },
-  });
-
-  res.json({ data: friends });
+    });
+    res.json({ data: friends });
+  } catch (err) {
+    next(err as Error);
+  }
 };
 
 export const addFriend = async (
