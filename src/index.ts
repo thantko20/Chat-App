@@ -5,7 +5,6 @@ import { Server } from 'socket.io';
 import http from 'http';
 import jwt from 'jsonwebtoken';
 import { Socket } from 'socket.io';
-import { v4 as uuidv4 } from 'uuid';
 
 import authRouter from './routes/auth';
 import friendsRouter from './routes/friends';
@@ -13,15 +12,20 @@ import conversationsrouter from './routes/conversations';
 import { TDecodedToken } from './middleware/verifyToken';
 import { prisma } from './services/db';
 import { Conversation } from '@prisma/client';
+import sendMessageHandler, {
+  ISendMessagePayload,
+} from './eventHandlers/sendMessageHandler';
 
 dotenv.config();
 const app = express();
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin: 'http://localhost:5173',
   },
 });
+
 app.set('socketIO', io);
 const PORT = process.env.PORT || 5000;
 
@@ -65,17 +69,7 @@ io.on('connection', (socket: Socket) => {
 
   socket.join(userId);
 
-  socket.on('send_message', async (payload: ISendMessagePayload) => {
-    try {
-      if (!payload.message || !payload.toUserId) return;
-
-      saveAndSendMessage(payload, socket);
-    } catch (err) {
-      socket.emit('send_message_error', {
-        errorMessage: 'Error while sending message.',
-      });
-    }
-  });
+  socket.on('send_message', sendMessageHandler(socket, io));
 
   socket.on('disconnect', () => {
     console.log('User disconnected');
@@ -85,53 +79,3 @@ io.on('connection', (socket: Socket) => {
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-interface ISendMessagePayload {
-  message: string;
-  conversationId?: string;
-  toUserId: string;
-}
-
-async function saveAndSendMessage(
-  {
-    message,
-    conversationId: payloadConversationId,
-    toUserId,
-  }: ISendMessagePayload,
-  socket: Socket,
-) {
-  const userId = socket.userId as string;
-  let conversationId = payloadConversationId as string;
-  let conversation: Conversation | null;
-
-  if (!conversationId) {
-    conversation = await prisma.conversation.create({
-      data: {
-        participantIds: [userId, toUserId],
-      },
-    });
-    conversationId = conversation.id;
-  }
-  conversation = (await prisma.conversation.findUnique({
-    where: {
-      id: conversationId,
-    },
-  })) as Conversation;
-
-  conversationId = conversation.id;
-
-  const newMessage = await prisma.message.create({
-    data: {
-      conversationId,
-      senderId: userId,
-      text: message,
-      conversationLastMessage: {
-        connect: {
-          id: conversation.id,
-        },
-      },
-    },
-  });
-
-  io.to([userId, toUserId]).emit('send_message', { message: newMessage });
-}
