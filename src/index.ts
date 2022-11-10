@@ -10,11 +10,8 @@ import authRouter from './routes/auth';
 import friendsRouter from './routes/friends';
 import conversationsrouter from './routes/conversations';
 import { TDecodedToken } from './middleware/verifyToken';
-import { prisma } from './services/db';
-import { Conversation } from '@prisma/client';
-import sendMessageHandler, {
-  ISendMessagePayload,
-} from './eventHandlers/sendMessageHandler';
+import sendMessageHandler from './eventHandlers/sendMessageHandler';
+import findUsersHandler from './eventHandlers/findUsersHandler';
 
 dotenv.config();
 const app = express();
@@ -61,15 +58,14 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket: Socket) => {
-  console.log('A user connected. UserID: ', socket.userId);
-
   const userId = socket.userId as string;
-
-  socket.emit('test', { userId });
+  console.log('A user connected. UserID: ', userId);
 
   socket.join(userId);
 
   socket.on('send_message', sendMessageHandler(socket, io));
+
+  socket.on('find_users', findUsersHandler(socket, io));
 
   socket.on('disconnect', () => {
     console.log('User disconnected');
