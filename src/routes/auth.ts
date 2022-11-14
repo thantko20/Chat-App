@@ -1,5 +1,6 @@
 import express from 'express';
-import { login, register } from '../controllers/auth';
+import { getAuthUser, login, register } from '../controllers/auth';
+import verifyToken from '../middleware/verifyToken';
 import validate from '../validation/validate';
 import {
   loginUserSchema,
@@ -10,5 +11,6 @@ const router = express.Router();
 
 router.post('/register', validate(registerUserSchema), register);
 router.post('/login', validate(loginUserSchema), login);
+router.get('/user', verifyToken, getAuthUser);
 
 export default router;

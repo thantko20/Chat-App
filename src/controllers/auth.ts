@@ -39,8 +39,10 @@ export const login = async (
         if (err) return next(err);
 
         res.json({
-          token,
-          user: excludeFields(user, 'password', 'salt'),
+          data: {
+            token,
+            user: excludeFields(user, 'password', 'salt'),
+          },
         });
       },
     );
@@ -101,5 +103,27 @@ export const register = async (
     res.json({ data: excludeFields(newUser, 'password', 'salt') });
   } catch (err) {
     next(err as Error);
+  }
+};
+
+export const getAuthUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: req.userId,
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'User Not Found' });
+    }
+
+    res.json({ data: excludeFields(user, 'password', 'salt') });
+  } catch (error) {
+    next(error);
   }
 };
