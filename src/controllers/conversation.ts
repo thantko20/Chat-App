@@ -8,6 +8,7 @@ export const getConversations = async (
   next: NextFunction,
 ) => {
   try {
+    console.log('hoho');
     const conversations = await prisma.conversation.findMany({
       where: {
         participantIds: {
@@ -42,13 +43,11 @@ export const getConversation = async (
   next: NextFunction,
 ) => {
   try {
-    const friendId = req.params.id;
+    const conversationId = req.params.id;
 
-    const conversation = await prisma.conversation.findFirst({
+    const conversation = await prisma.conversation.findUnique({
       where: {
-        participantIds: {
-          equals: [req.userId as string, friendId],
-        },
+        id: conversationId,
       },
       include: {
         messages: {
@@ -62,5 +61,34 @@ export const getConversation = async (
     res.json({ data: conversation });
   } catch (err) {
     next(err);
+  }
+};
+
+export const getFriendConversation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const friendId = req.params.id;
+
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        participantIds: {
+          equals: [req.userId as string, friendId as string],
+        },
+      },
+      include: {
+        messages: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+
+    return res.json({ data: conversation });
+  } catch (error) {
+    next(error);
   }
 };

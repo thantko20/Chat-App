@@ -8,7 +8,7 @@ import { Socket } from 'socket.io';
 
 import authRouter from './routes/auth';
 import friendsRouter from './routes/friends';
-import conversationsrouter from './routes/conversations';
+import conversationsRouter from './routes/conversations';
 import { TDecodedToken } from './middleware/verifyToken';
 import sendMessageHandler from './eventHandlers/sendMessageHandler';
 import findUsersHandler from './eventHandlers/findUsersHandler';
@@ -19,7 +19,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: '*',
   },
 });
 
@@ -31,7 +31,7 @@ app.use(express.json());
 
 app.use('/auth', authRouter);
 app.use('/friends', friendsRouter);
-app.use('/conversations', conversationsrouter);
+app.use('/conversations', conversationsRouter);
 
 app.get('/', async (req: Request, res: Response) => {
   res.send('Hello world');
@@ -67,8 +67,12 @@ io.on('connection', (socket: Socket) => {
 
   socket.on('find_users', findUsersHandler(socket, io));
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
+  socket.on('manual_disconnect', () => {
+    socket.disconnect();
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log(reason);
   });
 });
 

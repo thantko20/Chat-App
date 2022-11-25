@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../services/db';
 import { comparePassword, genHashAndSalt } from '../services/bcrypt';
 import { excludeFields } from '../utils';
+import { userModel } from '../models/users';
 
 export const login = async (
   req: Request,
@@ -12,11 +13,7 @@ export const login = async (
   try {
     const { email, password: plainTextPassword } = req.body;
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
+    const user = await userModel.findUserWithEmail(email);
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid Email.' });
@@ -41,7 +38,7 @@ export const login = async (
         res.json({
           data: {
             token,
-            user: excludeFields(user, 'password', 'salt'),
+            user: userModel.sanitizeUser(user),
           },
         });
       },
@@ -66,21 +63,13 @@ export const register = async (
   try {
     // Email and Handlenamme could be also validated via express-validator
 
-    const userEmail = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
+    const userEmail = await userModel.findUserWithEmail(email);
 
     if (userEmail) {
       return res.status(400).json({ message: 'Email Already In Use.' });
     }
 
-    const userHandlename = await prisma.user.findUnique({
-      where: {
-        handleName,
-      },
-    });
+    const userHandlename = await userModel.findUserWithHandleName(handleName);
 
     if (userHandlename) {
       return res.status(400).json({ message: 'Handle Name Already In Use.' });
@@ -88,16 +77,14 @@ export const register = async (
 
     const { password, salt } = await genHashAndSalt(plainTextPassword);
 
-    const newUser = await prisma.user.create({
-      data: {
-        firstName,
-        lastName,
-        handleName,
-        email,
-        emailVerified: true,
-        password,
-        salt,
-      },
+    const newUser = await userModel.signUp({
+      firstName,
+      lastName,
+      handleName,
+      email,
+      emailVerified: true,
+      password,
+      salt,
     });
 
     res.json({ data: excludeFields(newUser, 'password', 'salt') });
@@ -112,17 +99,13 @@ export const getAuthUser = async (
   next: NextFunction,
 ) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: req.userId,
-      },
-    });
+    const user = await userModel.findUserWithId(req.userId as string);
 
     if (!user) {
       return res.status(401).json({ message: 'User Not Found' });
     }
 
-    res.json({ data: excludeFields(user, 'password', 'salt') });
+    res.json({ data: userModel.sanitizeUser(user) });
   } catch (error) {
     next(error);
   }

@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { Server } from 'socket.io';
 import { prisma } from '../services/db';
+import { excludeFields } from '../utils';
 
 export const getFriends = async (
   req: Request,
@@ -23,26 +24,8 @@ export const getFriends = async (
       select: {
         id: true,
         status: true,
-        friendTo: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            handleName: true,
-            profileImage: true,
-          },
-        },
-        friendOf: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            handleName: true,
-            profileImage: true,
-          },
-        },
+        friendTo: true,
+        friendOf: true,
       },
       orderBy: {
         friendTo: {
@@ -50,7 +33,14 @@ export const getFriends = async (
         },
       },
     });
-    res.json({ data: friends });
+
+    const sanitizedFriendships = friends.map((friend) => ({
+      ...friend,
+      friendOf: excludeFields(friend.friendOf, 'password', 'salt'),
+      friendTo: excludeFields(friend.friendTo, 'password', 'salt'),
+    }));
+
+    res.json({ data: sanitizedFriendships });
   } catch (err) {
     next(err as Error);
   }
