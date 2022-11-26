@@ -48,6 +48,7 @@ model Conversation {
   lastMessage Message? @relation(name: "LastMessage", fields: [lastMessageId], references: [id])
   messages Message[] @relation("Messages")
   participantIds String[] @db.ObjectId @unique
+  acknowledgeParticipantIds String[]
   participants User[] @relation(fields: [participantIds], references: [id])
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())

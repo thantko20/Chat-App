@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../services/db';
 import { comparePassword, genHashAndSalt } from '../services/bcrypt';
 import { excludeFields } from '../utils';
 import { userModel } from '../models/users';

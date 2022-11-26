@@ -1,3 +1,4 @@
+import { Conversation } from '@prisma/client';
 import { ok } from 'assert';
 import { Server, Socket } from 'socket.io';
 import { prisma } from '../services/db';
@@ -20,17 +21,29 @@ export default withHandlerWrapper(
         throw Error();
       }
 
+      let conversation: Conversation | null;
+
       const userId = socket.userId as string;
 
-      const conversation = await prisma.conversation.upsert({
+      conversation = await prisma.conversation.findFirst({
         where: {
-          participantIds: [userId, toUserId],
+          participantIds: {
+            hasEvery: [userId, toUserId],
+          },
         },
-        update: {},
-        create: {
-          participantIds: [userId, toUserId],
-        },
+        // update: {},
+        // create: {
+        //   participantIds: [userId, toUserId],
+        // },
       });
+
+      if (!conversation) {
+        conversation = await prisma.conversation.create({
+          data: {
+            participantIds: [userId, toUserId],
+          },
+        });
+      }
 
       const newMessage = await prisma.message.create({
         data: {

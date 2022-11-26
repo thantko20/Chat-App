@@ -1,6 +1,7 @@
 import { prisma } from '../services/db';
 import { NextFunction, Request, Response } from 'express';
 import { excludeFields } from '../utils';
+import { Conversation } from '@prisma/client';
 
 export const getConversations = async (
   req: Request,
@@ -8,7 +9,6 @@ export const getConversations = async (
   next: NextFunction,
 ) => {
   try {
-    console.log('hoho');
     const conversations = await prisma.conversation.findMany({
       where: {
         participantIds: {
@@ -70,12 +70,12 @@ export const getFriendConversation = async (
   next: NextFunction,
 ) => {
   try {
-    const friendId = req.params.id;
+    const friendId = req.params.id as string;
 
     const conversation = await prisma.conversation.findFirst({
       where: {
         participantIds: {
-          equals: [req.userId as string, friendId as string],
+          hasEvery: [req.userId as string, friendId],
         },
       },
       include: {
