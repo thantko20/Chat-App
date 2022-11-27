@@ -66,6 +66,8 @@ export default withHandlerWrapper(
         });
 
       io.to([userId, toUserId]).emit('send_message', { message: newMessage });
+
+      io.to(toUserId).emit('conversation_update', { message: newMessage });
     } catch {
       ack &&
         ack({
