@@ -7,9 +7,9 @@ import jwt from 'jsonwebtoken';
 import { Socket } from 'socket.io';
 
 import authRouter from './routes/auth';
-import friendsRouter from './routes/friends';
 import conversationsRouter from './routes/conversations';
 import userRouter from './routes/user';
+import contactRouter from './routes/contact';
 import { TDecodedToken } from './middleware/verifyToken';
 import sendMessageHandler from './eventHandlers/sendMessageHandler';
 import findUsersHandler from './eventHandlers/findUsersHandler';
@@ -31,9 +31,9 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/auth', authRouter);
-app.use('/friends', friendsRouter);
 app.use('/conversations', conversationsRouter);
 app.use('/users', userRouter);
+app.use('/contacts', contactRouter);
 
 app.get('/', async (req: Request, res: Response) => {
   res.send('Hello world');

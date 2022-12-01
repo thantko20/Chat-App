@@ -2,6 +2,7 @@ import { Conversation } from '@prisma/client';
 import { ok } from 'assert';
 import { Server, Socket } from 'socket.io';
 import { prisma } from '../services/db';
+import { excludeFields } from '../utils';
 import withHandlerWrapper from './withHanlderWrapper';
 
 export interface ISendMessagePayload {
@@ -66,8 +67,28 @@ export default withHandlerWrapper(
         });
 
       io.to([userId, toUserId]).emit('send_message', { message: newMessage });
+      const updatedConversation = await prisma.conversation.findUnique({
+        where: {
+          id: newMessage.conversationId,
+        },
+        include: {
+          lastMessage: true,
+          participants: true,
+        },
+      });
 
-      io.to(toUserId).emit('conversation_update', { message: newMessage });
+      const sanitizedParticipants = updatedConversation?.participants.map(
+        (participant) => excludeFields(participant, 'password', 'salt'),
+      );
+
+      const sanitizedConversation = {
+        ...updatedConversation,
+        participants: sanitizedParticipants,
+      };
+
+      io.to(toUserId).emit('conversation_update', {
+        conversation: sanitizedConversation,
+      });
     } catch {
       ack &&
         ack({

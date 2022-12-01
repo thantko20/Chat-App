@@ -8,21 +8,52 @@ export interface IFindUsersPayload {
 }
 
 export default withHandlerWrapper(
-  async ({ handleName }: IFindUsersPayload, socket: Socket, io: Server) => {
+  async (
+    { handleName }: IFindUsersPayload,
+    socket: Socket,
+    io: Server,
+    ack,
+  ) => {
     try {
       if (!handleName) return;
+
       const users = await prisma.user.findMany({
         where: {
           handleName: {
             startsWith: handleName,
           },
+          NOT: {
+            id: socket.userId,
+          },
+        },
+        include: {
+          toUsers: {
+            select: {
+              fromUserId: true,
+            },
+          },
         },
       });
 
-      const sanitizedUsers = users.map((user) =>
-        excludeFields(user, 'password', 'salt'),
-      );
-      socket.emit('find_users', { users: sanitizedUsers });
+      const usersWithContactStatus = users.map((user) => {
+        const isInReqUserContacts = Boolean(
+          user.toUsers.find((toUser) => toUser.fromUserId === socket.userId),
+        );
+
+        return {
+          ...excludeFields(user, 'toUsers', 'password', 'salt'),
+          isInReqUserContacts,
+        };
+      });
+
+      socket.emit('find_users', { users: usersWithContactStatus });
+      if (ack) {
+        ack({
+          status: {
+            ok: true,
+          },
+        });
+      }
     } catch (err) {
       socket.emit('finding_users_error', {
         message: 'Error while finding users.',

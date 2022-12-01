@@ -3,13 +3,11 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = "referentialIntegrity"
 }
 
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
-  relationMode = "prisma"
 }
 
 model User {
@@ -22,8 +20,8 @@ model User {
   salt String
   emailVerified Boolean
   profileImage String?
-  friendshipFriendOf Friendship[] @relation("FriendOf")
-  friendshipFriendTo Friendship[] @relation("FriendTo")
+  fromUsers UserContact[] @relation(name: "fromUser")
+  toUsers UserContact[] @relation(name: "toUser")
   messages Message[]
   conversationIds String[] @db.ObjectId
   conversations Conversation[] @relation(fields: [conversationIds], references: [id])
@@ -31,15 +29,13 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
-model Friendship {
+model UserContact {
   id String @id @default(auto()) @map("_id") @db.ObjectId
-  status FriendShipStatus @default(REQUEST_PENDING)
-  friendOfId String @db.ObjectId
-  friendToId String @db.ObjectId
-  friendOf User @relation(name: "FriendOf", fields: [friendOfId], references: [id])
-  friendTo User @relation(name: "FriendTo", fields: [friendToId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  fromUserId String
+  toUserId String
+  fromUser User @relation(name: "fromUser", fields: [fromUserId], references: [id])
+  toUser User @relation(name: "toUser", fields: [toUserId], references: [id])
+	@@map("ContactUser")
 }
 
 model Conversation {
