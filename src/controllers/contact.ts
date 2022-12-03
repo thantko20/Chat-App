@@ -20,7 +20,6 @@ export const getContacts = async (
       orderBy: {
         toUser: {
           firstName: 'asc',
-          lastName: 'asc',
         },
       },
     });

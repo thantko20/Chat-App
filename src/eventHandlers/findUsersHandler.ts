@@ -15,13 +15,48 @@ export default withHandlerWrapper(
     ack,
   ) => {
     try {
-      if (!handleName) return;
+      if (!handleName) {
+        socket.emit('find_users', { users: [] });
+        if (ack) {
+          ack({
+            status: {
+              ok: true,
+            },
+          });
+        }
+        return;
+      }
+
+      const [firstName, ...rest] = handleName.split(' ');
+      const lastName = rest.join(' ');
 
       const users = await prisma.user.findMany({
         where: {
-          handleName: {
-            startsWith: handleName,
-          },
+          OR: [
+            {
+              handleName: {
+                startsWith: handleName,
+                mode: 'insensitive',
+              },
+            },
+            {
+              AND: [
+                {
+                  firstName: {
+                    startsWith: firstName,
+                    mode: 'insensitive',
+                  },
+                },
+                {
+                  lastName: {
+                    startsWith: lastName,
+                    mode: 'insensitive',
+                  },
+                },
+              ],
+            },
+          ],
+
           NOT: {
             id: socket.userId,
           },
