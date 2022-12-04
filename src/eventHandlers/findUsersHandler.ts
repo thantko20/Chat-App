@@ -27,9 +27,6 @@ export default withHandlerWrapper(
         return;
       }
 
-      const [firstName, ...rest] = handleName.split(' ');
-      const lastName = rest.join(' ');
-
       const users = await prisma.user.findMany({
         where: {
           OR: [
@@ -38,22 +35,6 @@ export default withHandlerWrapper(
                 startsWith: handleName,
                 mode: 'insensitive',
               },
-            },
-            {
-              AND: [
-                {
-                  firstName: {
-                    startsWith: firstName,
-                    mode: 'insensitive',
-                  },
-                },
-                {
-                  lastName: {
-                    startsWith: lastName,
-                    mode: 'insensitive',
-                  },
-                },
-              ],
             },
           ],
 

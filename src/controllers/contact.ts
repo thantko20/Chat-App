@@ -44,6 +44,17 @@ export const addContact = async (
     const userId = req.userId as string;
     const toUserId = req.params.userId;
 
+    const contactExists = await prisma.userContact.findFirst({
+      where: {
+        fromUserId: userId,
+        toUserId,
+      },
+    });
+
+    if (contactExists) {
+      return res.status(400).json({ message: 'Already in the contacts.' });
+    }
+
     const contact = await prisma.userContact.create({
       data: {
         fromUserId: userId,
@@ -62,5 +73,33 @@ export const addContact = async (
     return res.json({ data: sanitizedContact });
   } catch (error) {
     next(error as Error);
+  }
+};
+
+export const removeContact = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const contactId = req.params.contactId as string;
+
+    const contact = await prisma.userContact.findUnique({
+      where: { id: contactId },
+    });
+
+    if (!contact) {
+      return res.status(400).json({ message: 'No Contact Found.' });
+    }
+
+    await prisma.userContact.delete({
+      where: {
+        id: contactId,
+      },
+    });
+
+    res.redirect('/contacts');
+  } catch (error) {
+    next(error);
   }
 };
