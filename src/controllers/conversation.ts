@@ -1,7 +1,15 @@
 import { prisma } from '../services/db';
 import { NextFunction, Request, Response } from 'express';
 import { excludeFields } from '../utils';
-import { Conversation } from '@prisma/client';
+import { Conversation, Message, Prisma } from '@prisma/client';
+
+type ConversationWithMessages = Prisma.ConversationGetPayload<{
+  include: {
+    messages: true;
+  };
+}>;
+
+const NUMBER_OF_MESSAGES_TO_FETCH = 20;
 
 export const getConversations = async (
   req: Request,
@@ -31,7 +39,7 @@ export const getConversations = async (
       return { ...con, participants: participantsWithoutPassword };
     });
 
-    res.json({ data: sanitizedConversations });
+    res.json({ conversations: sanitizedConversations });
   } catch (err) {
     next(err);
   }
@@ -43,22 +51,49 @@ export const getConversation = async (
   next: NextFunction,
 ) => {
   try {
-    const conversationId = req.params.id;
+    const cursor = req.query.cursor as any;
 
-    const conversation = await prisma.conversation.findUnique({
-      where: {
-        id: conversationId,
-      },
-      include: {
-        messages: {
-          orderBy: {
-            createdAt: 'desc',
+    const conversationId = req.params.id;
+    let conversation: ConversationWithMessages | null;
+
+    if (cursor) {
+      conversation = await prisma.conversation.findUnique({
+        where: {
+          id: conversationId,
+        },
+        include: {
+          messages: {
+            take: NUMBER_OF_MESSAGES_TO_FETCH,
+            skip: cursor ? 1 : 0,
+            orderBy: {
+              createdAt: 'desc',
+            },
+            cursor: cursor,
           },
         },
-      },
-    });
+      });
+    } else {
+      conversation = await prisma.conversation.findUnique({
+        where: {
+          id: conversationId,
+        },
+        include: {
+          messages: {
+            take: NUMBER_OF_MESSAGES_TO_FETCH,
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+        },
+      });
+    }
 
-    res.json({ data: conversation });
+    const newCursor =
+      conversation?.messages[NUMBER_OF_MESSAGES_TO_FETCH - 1].id;
+
+    console.log('Number of messages: ', conversation?.messages.length);
+
+    res.json({ conversation: conversation, cursor: newCursor });
   } catch (err) {
     next(err);
   }
@@ -71,23 +106,52 @@ export const getFriendConversation = async (
 ) => {
   try {
     const friendId = req.params.id as string;
+    const { cursor = '' } = req.query;
 
-    const conversation = await prisma.conversation.findFirst({
-      where: {
-        participantIds: {
-          hasEvery: [req.userId as string, friendId],
-        },
-      },
-      include: {
-        messages: {
-          orderBy: {
-            createdAt: 'desc',
+    let conversation: ConversationWithMessages | null;
+
+    if (cursor) {
+      conversation = await prisma.conversation.findFirst({
+        where: {
+          participantIds: {
+            hasEvery: [req.userId as string, friendId],
           },
         },
-      },
-    });
+        include: {
+          messages: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: NUMBER_OF_MESSAGES_TO_FETCH,
+            skip: 1,
+            cursor: cursor as any,
+          },
+        },
+      });
+    } else {
+      conversation = await prisma.conversation.findFirst({
+        where: {
+          participantIds: {
+            hasEvery: [req.userId as string, friendId],
+          },
+        },
+        include: {
+          messages: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 20,
+          },
+        },
+      });
+    }
 
-    return res.json({ data: conversation });
+    const messages = conversation?.messages ?? [];
+    const lastMessageId = messages[messages.length - 1].id ?? '';
+
+    const newCursor = lastMessageId;
+
+    return res.json({ conversation, cursor: newCursor });
   } catch (error) {
     next(error);
   }

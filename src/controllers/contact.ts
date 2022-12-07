@@ -29,7 +29,7 @@ export const getContacts = async (
       toUser: excludeFields(contact.toUser, 'password', 'salt'),
     }));
 
-    return res.json({ data: sanitizedContacts });
+    return res.json({ contacts: sanitizedContacts });
   } catch (error) {
     next(error as Error);
   }
@@ -70,7 +70,7 @@ export const addContact = async (
       toUser: excludeFields(contact.toUser, 'password', 'salt'),
     };
 
-    return res.json({ data: sanitizedContact });
+    return res.json({ contact: sanitizedContact });
   } catch (error) {
     next(error as Error);
   }

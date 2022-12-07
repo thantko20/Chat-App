@@ -35,7 +35,7 @@ export const login = async (
         if (err) return next(err);
 
         res.json({
-          data: {
+          authInfo: {
             token,
             user: userModel.sanitizeUser(user),
           },
@@ -86,7 +86,7 @@ export const register = async (
       salt,
     });
 
-    res.json({ data: excludeFields(newUser, 'password', 'salt') });
+    res.json({ user: excludeFields(newUser, 'password', 'salt') });
   } catch (err) {
     next(err as Error);
   }
@@ -104,7 +104,7 @@ export const getAuthUser = async (
       return res.status(401).json({ message: 'User Not Found' });
     }
 
-    res.json({ data: userModel.sanitizeUser(user) });
+    res.json({ user: userModel.sanitizeUser(user) });
   } catch (error) {
     next(error);
   }

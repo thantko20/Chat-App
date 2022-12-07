@@ -15,7 +15,7 @@ export const getUser = async (
       },
     });
 
-    res.json({ data: user });
+    res.json({ user });
   } catch (error) {
     next(error as Error);
   }
