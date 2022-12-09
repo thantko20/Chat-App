@@ -98,7 +98,7 @@ export const removeContact = async (
       },
     });
 
-    res.redirect('/contacts');
+    res.redirect(303, '/contacts');
   } catch (error) {
     next(error);
   }

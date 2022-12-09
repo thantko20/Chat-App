@@ -6,13 +6,8 @@ const router = express.Router();
 
 router.get('/', verifyToken, getContacts);
 
-router.get('/search', verifyToken, () => {
-  // TODO,
-  // Might not be needed since this operation
-  // will be used with socket.
-});
-
-router.post('/add/:userId', verifyToken, addContact);
-router.post('/delete/:contactId', verifyToken, removeContact);
+router
+  .post('/:userId', verifyToken, addContact)
+  .delete('/:contactId', verifyToken, removeContact);
 
 export default router;
