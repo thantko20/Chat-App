@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { prisma } from '../services/db';
 import { excludeFields } from '../utils';
-import withHandlerWrapper from './withHanlderWrapper';
+import withHandlerWrapper from './withHandlerWrapper';
 
 export interface IFindUsersPayload {
   handleName: string;
@@ -12,7 +12,7 @@ export default withHandlerWrapper(
     { handleName }: IFindUsersPayload,
     socket: Socket,
     io: Server,
-    ack,
+    ack
   ) => {
     try {
       if (!handleName) {
@@ -53,7 +53,7 @@ export default withHandlerWrapper(
 
       const usersWithContactStatus = users.map((user) => {
         const isInReqUserContacts = Boolean(
-          user.toUsers.find((toUser) => toUser.fromUserId === socket.userId),
+          user.toUsers.find((toUser) => toUser.fromUserId === socket.userId)
         );
 
         return {
@@ -75,5 +75,5 @@ export default withHandlerWrapper(
         message: 'Error while finding users.',
       });
     }
-  },
+  }
 );

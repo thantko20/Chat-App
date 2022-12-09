@@ -1,10 +1,10 @@
-import { prisma } from '../services/db';
 import { NextFunction, Request, Response } from 'express';
+import { prisma } from '../services/db';
 
 export const getUser = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const userId = req.params.userId as string;

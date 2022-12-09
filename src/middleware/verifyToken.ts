@@ -21,7 +21,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     async (err, decoded) => {
       if (err || !decoded) return next(err);
 
-      const userId = (decoded as TDecodedToken).userId;
+      const { userId } = decoded as TDecodedToken;
 
       const user = await prisma.user.findUnique({
         where: {
@@ -36,7 +36,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
       req.userId = userId;
 
       next();
-    },
+    }
   );
 };
 

@@ -2,8 +2,11 @@ export const excludeFields = <T, Key extends keyof T>(
   doc: T,
   ...keys: Key[]
 ): Omit<T, Key> => {
-  for (let key of keys) {
-    delete doc[key];
-  }
-  return doc;
+  const newDoc = { ...doc };
+
+  keys.forEach((key) => {
+    delete newDoc[key];
+  });
+
+  return newDoc;
 };

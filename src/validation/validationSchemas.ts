@@ -1,5 +1,4 @@
 import { body } from 'express-validator';
-import { prisma } from '../services/db';
 
 export const registerUserSchema = [
   body('firstName')

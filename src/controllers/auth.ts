@@ -7,7 +7,7 @@ import { userModel } from '../models/users';
 export const login = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const { email, password: plainTextPassword } = req.body;
@@ -20,7 +20,7 @@ export const login = async (
 
     const isPasswordValid = await comparePassword(
       plainTextPassword,
-      user.password,
+      user.password
     );
 
     if (!isPasswordValid) {
@@ -40,7 +40,7 @@ export const login = async (
             user: userModel.sanitizeUser(user),
           },
         });
-      },
+      }
     );
   } catch (err) {
     next(err as Error);
@@ -50,7 +50,7 @@ export const login = async (
 export const register = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   const {
     firstName,
@@ -95,7 +95,7 @@ export const register = async (
 export const getAuthUser = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const user = await userModel.findUserWithId(req.userId as string);

@@ -5,7 +5,7 @@ import { excludeFields } from '../utils';
 export const getContacts = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const userId = req.userId as string;
@@ -38,7 +38,7 @@ export const getContacts = async (
 export const addContact = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const userId = req.userId as string;
@@ -58,7 +58,7 @@ export const addContact = async (
     const contact = await prisma.userContact.create({
       data: {
         fromUserId: userId,
-        toUserId: toUserId,
+        toUserId,
       },
       include: {
         toUser: true,
@@ -79,7 +79,7 @@ export const addContact = async (
 export const removeContact = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const contactId = req.params.contactId as string;

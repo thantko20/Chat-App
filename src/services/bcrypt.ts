@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
 
-const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS as string);
+const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS as string, 10);
 
 export const genHashAndSalt = async (
-  plainTextPassword: string,
+  plainTextPassword: string
 ): Promise<{ password: string; salt: string }> => {
   const salt = await bcrypt.genSalt(SALT_ROUNDS);
   const password = await bcrypt.hash(plainTextPassword, salt);
@@ -16,7 +16,7 @@ export const genHashAndSalt = async (
 
 export const comparePassword = async (
   plainPassword: string,
-  hashPassword: string,
+  hashPassword: string
 ) => {
   const isEqual = await bcrypt.compare(plainPassword, hashPassword);
 

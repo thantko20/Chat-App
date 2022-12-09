@@ -25,25 +25,28 @@ export function Users(prismaUser: PrismaClient['user']) {
     },
 
     async findUserWithHandleName(handleName: string) {
-      return await prismaUser.findUnique({
+      const user = await prismaUser.findUnique({
         where: {
           handleName,
         },
       });
+      return user;
     },
 
     async findUserWithId(id: string) {
-      return await prismaUser.findUnique({
+      const user = await prismaUser.findUnique({
         where: {
           id,
         },
       });
+      return user;
     },
 
     async signUp(data: TUserSignUp) {
-      return await prismaUser.create({
+      const user = await prismaUser.create({
         data,
       });
+      return user;
     },
 
     sanitizeUser(user: User) {

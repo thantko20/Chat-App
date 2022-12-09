@@ -1,11 +1,10 @@
 import express, { Request, Response } from 'express';
 import * as dotenv from 'dotenv';
 import cors from 'cors';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import http from 'http';
 import jwt from 'jsonwebtoken';
 import morgan from 'morgan';
-import { Socket } from 'socket.io';
 
 import authRouter from './routes/auth';
 import conversationsRouter from './routes/conversations';
@@ -54,15 +53,17 @@ io.use((socket, next) => {
       if (err) return next(err);
       const { userId } = decoded as TDecodedToken;
 
+      // eslint-disable-next-line no-param-reassign
       socket.userId = userId;
 
       next();
-    },
+    }
   );
 });
 
 io.on('connection', (socket: Socket) => {
   const userId = socket.userId as string;
+  // eslint-disable-next-line no-console
   console.log('A user connected. UserID: ', userId);
 
   socket.join(userId);
@@ -76,10 +77,12 @@ io.on('connection', (socket: Socket) => {
   });
 
   socket.on('disconnect', (reason) => {
+    // eslint-disable-next-line no-console
     console.log(reason);
   });
 });
 
 server.listen(PORT, () => {
+  // eslint-disable-next-line no-console
   console.log(`Server running on port ${PORT}`);
 });

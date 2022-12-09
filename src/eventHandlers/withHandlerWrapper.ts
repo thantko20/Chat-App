@@ -13,7 +13,7 @@ type THandler<PayloadType> = (
   payload: PayloadType,
   socket: Socket,
   io: Server,
-  ack?: (response: TAcknowledgeResponse) => void,
+  ack?: (response: TAcknowledgeResponse) => void
 ) => void;
 
 const withHandlerWrapper = <PayloadType>(cb: THandler<PayloadType>) => {

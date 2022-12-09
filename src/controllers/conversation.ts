@@ -1,7 +1,7 @@
-import { prisma } from '../services/db';
 import { NextFunction, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
+import { prisma } from '../services/db';
 import { excludeFields } from '../utils';
-import { Conversation, Message, Prisma } from '@prisma/client';
 
 type ConversationWithMessages = Prisma.ConversationGetPayload<{
   include: {
@@ -14,7 +14,7 @@ const NUMBER_OF_MESSAGES_TO_FETCH = 20;
 export const getConversations = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const conversations = await prisma.conversation.findMany({
@@ -34,7 +34,7 @@ export const getConversations = async (
 
     const sanitizedConversations = conversations.map((con) => {
       const participantsWithoutPassword = con.participants.map((participant) =>
-        excludeFields(participant, 'password', 'salt'),
+        excludeFields(participant, 'password', 'salt')
       );
       return { ...con, participants: participantsWithoutPassword };
     });
@@ -48,7 +48,7 @@ export const getConversations = async (
 export const getConversation = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const cursor = req.query.cursor as any;
@@ -68,7 +68,7 @@ export const getConversation = async (
             orderBy: {
               createdAt: 'desc',
             },
-            cursor: cursor,
+            cursor,
           },
         },
       });
@@ -91,9 +91,7 @@ export const getConversation = async (
     const newCursor =
       conversation?.messages[NUMBER_OF_MESSAGES_TO_FETCH - 1].id;
 
-    console.log('Number of messages: ', conversation?.messages.length);
-
-    res.json({ conversation: conversation, cursor: newCursor });
+    res.json({ conversation, cursor: newCursor });
   } catch (err) {
     next(err);
   }
@@ -102,7 +100,7 @@ export const getConversation = async (
 export const getFriendConversation = async (
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const friendId = req.params.id as string;
