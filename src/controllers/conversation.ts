@@ -122,7 +122,9 @@ export const getFriendConversation = async (
             },
             take: NUMBER_OF_MESSAGES_TO_FETCH,
             skip: 1,
-            cursor: cursor as any,
+            cursor: {
+              id: cursor as string,
+            },
           },
         },
       });
@@ -138,16 +140,17 @@ export const getFriendConversation = async (
             orderBy: {
               createdAt: 'desc',
             },
-            take: 20,
+            take: NUMBER_OF_MESSAGES_TO_FETCH,
           },
         },
       });
     }
 
     const messages = conversation?.messages ?? [];
-    const lastMessageId = messages[messages.length - 1].id ?? '';
-
-    const newCursor = lastMessageId;
+    const newCursor =
+      messages.length < NUMBER_OF_MESSAGES_TO_FETCH
+        ? undefined
+        : messages[NUMBER_OF_MESSAGES_TO_FETCH - 1].id;
 
     return res.json({ conversation, cursor: newCursor });
   } catch (error) {

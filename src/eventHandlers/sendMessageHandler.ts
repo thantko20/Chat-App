@@ -31,10 +31,6 @@ export default withHandlerWrapper(
             hasEvery: [userId, toUserId],
           },
         },
-        // update: {},
-        // create: {
-        //   participantIds: [userId, toUserId],
-        // },
       });
 
       if (!conversation) {
