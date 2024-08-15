@@ -64,7 +64,7 @@ io.use((socket, next) => {
 io.on('connection', (socket: Socket) => {
   const userId = socket.userId as string;
   // eslint-disable-next-line no-console
-  console.log('A user connected. UserID: ', userId);
+  console.log('A user connected. UserId: ', userId);
 
   socket.join(userId);
 
